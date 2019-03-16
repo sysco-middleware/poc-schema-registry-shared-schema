@@ -1,0 +1,11 @@
+{
+  "name": "Common",
+  "namespace": "no.sysco.avro",
+  "type": "record",
+  "fields": [
+    {
+      "name": "field",
+      "type": "string"
+    }
+  ]
+}
