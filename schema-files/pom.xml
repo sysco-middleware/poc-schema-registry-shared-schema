@@ -9,7 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>schemas</artifactId>
+  <artifactId>schema-files</artifactId>
 
   <properties>
     <schema-registry.url>http://localhost:8081</schema-registry.url>
