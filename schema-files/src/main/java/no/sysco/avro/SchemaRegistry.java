@@ -2,14 +2,18 @@ package no.sysco.avro;
 
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.serializers.subject.RecordNameStrategy;
+import io.confluent.kafka.serializers.subject.TopicNameStrategy;
+import io.confluent.kafka.serializers.subject.TopicRecordNameStrategy;
+import io.confluent.kafka.serializers.subject.strategy.SubjectNameStrategy;
 import org.apache.avro.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SchemaRegistry {
-  static final Logger LOGGER = LoggerFactory.getLogger(SchemaRegistry.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SchemaRegistry.class);
 
-  final SchemaRegistryClient client;
+  private final SchemaRegistryClient client;
 
   private SchemaRegistry(SchemaRegistryClient client) {
     this.client = client;
@@ -31,20 +35,36 @@ public class SchemaRegistry {
 
     String operation = args[1];
 
-    String topicName = args[2]; // This could be improved, depending on subject name strategy.
+    String strategy = args[2];
+    SubjectNameStrategy<Schema> subjectNameStrategy =
+        schemaRegistry.getSubjectNameStrategy(strategy);
+
+    String topicName = args[3]; // This could be improved, depending on subject name strategy.
 
     switch (operation) {
       case Operation.REGISTER_OP:
-        Schemas.SCHEMA_SET.forEach(schema -> {
-          String subjectName = String.format("%s-%s", topicName, schema.getFullName());
+        Schemas.SCHEMA_MAP.forEach((schema, isKey) -> {
+          String subjectName = subjectNameStrategy.subjectName(topicName, isKey, schema);
           schemaRegistry.register(subjectName, schema);
         });
-        schemaRegistry.register("business-value", BusinessRecord.SCHEMA$);
       case Operation.TEST_COMPATIBILITY_OP:
-        Schemas.SCHEMA_SET.forEach(schema -> {
-          String subjectName = String.format("%s-%s", topicName, schema.getFullName());
+        Schemas.SCHEMA_MAP.forEach((schema, isKey) -> {
+          String subjectName = subjectNameStrategy.subjectName(topicName, isKey, schema);
           schemaRegistry.testCompatibility(subjectName, schema);
         });
+    }
+  }
+
+  private SubjectNameStrategy<Schema> getSubjectNameStrategy(String strategy) {
+    switch (strategy) {
+      case Strategy.TOPIC_RECORD_NAME_STRATEGY:
+        return new TopicRecordNameStrategy();
+      case Strategy.RECORD_NAME_STRATEGY:
+        return new RecordNameStrategy();
+      case Strategy.TOPIC_NAME_STRATEGY:
+        return new TopicNameStrategy();
+      default:
+        return new TopicNameStrategy();
     }
   }
 
@@ -76,5 +96,11 @@ public class SchemaRegistry {
   static class Operation {
     static final String REGISTER_OP = "register";
     static final String TEST_COMPATIBILITY_OP = "test-compatibility";
+  }
+
+  static class Strategy {
+    static final String RECORD_NAME_STRATEGY = "record-name";
+    static final String TOPIC_RECORD_NAME_STRATEGY = "topic-record-name";
+    static final String TOPIC_NAME_STRATEGY = "topic-name";
   }
 }
