@@ -77,6 +77,8 @@
           <mainClass>no.sysco.avro.SchemaRegistry</mainClass>
           <arguments>
             <argument>${schema-registry.url}</argument>
+            <argument>register</argument>
+            <argument>test_v1</argument>
           </arguments>
         </configuration>
       </plugin>
