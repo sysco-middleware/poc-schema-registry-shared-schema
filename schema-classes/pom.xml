@@ -32,6 +32,7 @@
           <subjects>
             <business2-value>src/main/avro/business2.avsc</business2-value>
           </subjects>
+          <outputDirectory/>
         </configuration>
         <executions>
           <execution>

@@ -1,1 +1,26 @@
-{"type":"record","name":"BusinessRecord","fields":[{"name":"id","type":"string"},{"name":"common","type":{"type":"record","name":"CommonRecord","namespace":"no.sysco.avro","doc":"Common schema","fields":[{"name":"field","type":"string"}]},"doc":"Common"}]}
+{
+  "type": "record",
+  "name": "BusinessRecord",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "common",
+      "type": {
+        "type": "record",
+        "name": "CommonRecord",
+        "namespace": "no.sysco.avro",
+        "doc": "Common schema",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          }
+        ]
+      },
+      "doc": "Common"
+    }
+  ]
+}
