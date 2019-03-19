@@ -6,6 +6,9 @@ import io.confluent.kafka.serializers.subject.RecordNameStrategy;
 import io.confluent.kafka.serializers.subject.TopicNameStrategy;
 import io.confluent.kafka.serializers.subject.TopicRecordNameStrategy;
 import io.confluent.kafka.serializers.subject.strategy.SubjectNameStrategy;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Consumer;
 import org.apache.avro.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +23,7 @@ public class SchemaRegistry {
   }
 
   public static void main(String[] args) {
+    LOGGER.info("args: {}", Arrays.asList(args));
     String schemaRegistryUrl = args[0];
 
     if (schemaRegistryUrl == null || schemaRegistryUrl.isEmpty()) {
@@ -41,17 +45,26 @@ public class SchemaRegistry {
 
     String topicName = args[3]; // This could be improved, depending on subject name strategy.
 
+    Consumer<Map<Schema, Boolean>> registerFunc =  schemaMap -> schemaMap.forEach((schema, isKey) -> {
+      String subjectName = subjectNameStrategy.subjectName(topicName, isKey, schema);
+      schemaRegistry.register(subjectName, schema);
+    });
+
+    Consumer<Map<Schema, Boolean>> testCompatibilityFunc =  schemaMap -> schemaMap.forEach((schema, isKey) -> {
+      String subjectName = subjectNameStrategy.subjectName(topicName, isKey, schema);
+      schemaRegistry.testCompatibility(subjectName, schema);
+    });
+
     switch (operation) {
-      case Operation.REGISTER_OP:
-        Schemas.SCHEMA_MAP.forEach((schema, isKey) -> {
-          String subjectName = subjectNameStrategy.subjectName(topicName, isKey, schema);
-          schemaRegistry.register(subjectName, schema);
-        });
-      case Operation.TEST_COMPATIBILITY_OP:
-        Schemas.SCHEMA_MAP.forEach((schema, isKey) -> {
-          String subjectName = subjectNameStrategy.subjectName(topicName, isKey, schema);
-          schemaRegistry.testCompatibility(subjectName, schema);
-        });
+      case Operation.REGISTER_OP: {
+        testCompatibilityFunc.accept(Schemas.SCHEMA_MAP);
+        registerFunc.accept(Schemas.SCHEMA_MAP);
+        break;
+      }
+      case Operation.TEST_COMPATIBILITY_OP: {
+        testCompatibilityFunc.accept(Schemas.SCHEMA_MAP);
+        break;
+      }
     }
   }
 

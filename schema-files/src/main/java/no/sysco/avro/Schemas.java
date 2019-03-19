@@ -1,11 +1,9 @@
 package no.sysco.avro;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import org.apache.avro.Schema;
-
+// todo: make it dynamic via args or config
 public class Schemas {
   // Schema:isKey
   static final Map<Schema, Boolean> SCHEMA_MAP = new HashMap<>();
